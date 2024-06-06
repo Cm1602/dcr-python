@@ -1,17 +1,19 @@
 import sqlite3
 
-conn = None
+
 
 
 class DBO:
     DB_FILE = "../data/countries.db"
+    conn = None
 
     def __init__(self):
-        global conn
+        
 
-        if conn is None:
-            conn = sqlite3.connect(self.DB_FILE)
-        self.cursor = conn.cursor()
+        if DBO.conn is None:
+            DBO.conn = sqlite3.connect(self.DB_FILE)
+        self.conn = DBO.conn
+        self.cursor = self.conn.cursor()
 
         self.data = None
 
@@ -20,7 +22,7 @@ class Region(DBO):
     def create(self, name):
         insert_query = "INSERT INTO region (name) VALUES (?)"
         self.cursor.execute(insert_query, (name,))
-        conn.commit()
+        self.conn.commit()
 
     def get_by_name(self, name):
         select_query = "SElECT id, name FROM region WHERE name=?"
@@ -40,15 +42,15 @@ class Region(DBO):
 
 
 class Country(DBO):
-    def insert(self, name, alpha2Code, alpha3Code, population, region_id):
+    def insert(self, name, alpha2Code, alpha3Code, population, region_id, topLevelDomain=None, capital=None):
         insert_query = (
-            "INSERT INTO country (name, alpha2Code, alpha3Code, population, "
-            "region_id) VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO country (name, alpha2Code, alpha3Code, population, region_id, topLevelDomain, capital) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)"
         )
         self.cursor.execute(
-            insert_query, (name, alpha2Code, alpha3Code, population, region_id)
+            insert_query, (name, alpha2Code, alpha3Code, population, region_id, topLevelDomain, capital)
         )
-        conn.commit()
+        self.conn.commit()
         self.get_by_name(name)
 
     def get_by_name(self, name):
@@ -66,11 +68,11 @@ class Country(DBO):
         dbo = DBO()
         select_statement = """
             SELECT c.name AS country_name, c.alpha2Code, c.alpha3Code,
-                    c.population, r.name AS region_name
+                    c.population, c.topLevelDomain, c.capital, r.name AS region_name
                 FROM country c
                 JOIN region r ON c.region_id = r.id;
             """
-        dbo.cursor.execute((select_statement))
+        dbo.cursor.execute(select_statement)
         headers = [header[0] for header in dbo.cursor.description]
 
         for row in dbo.cursor.fetchall():

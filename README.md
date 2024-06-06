@@ -76,4 +76,4 @@ Please update the database tables and management command to also import:
  * topLevelDomain
  * capital
 
- Please record any SQL commands executed to modify the database schema.
+ Please record any SQL commands executed to modify the database schema. - See update_db_schema.py
